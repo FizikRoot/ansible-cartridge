@@ -88,10 +88,7 @@ def candidate_is_ok(uri, names_by_uris, module_hostvars):
     instance_name = names_by_uris[uri]
     instance_vars = module_hostvars[instance_name]
 
-    if helpers.is_expelled(instance_vars):
-        return False
-
-    return True
+    return helpers.not_disabled(instance_vars)
 
 
 def get_control_instance_name(module_hostvars, play_hosts, control_console):

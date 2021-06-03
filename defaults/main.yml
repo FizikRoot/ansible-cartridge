@@ -103,6 +103,7 @@ cartridge_extra_env: null
 
 restarted: null
 expelled: false
+disabled: false
 stateboard: false
 
 instance_start_timeout: null  # DEPRECATED

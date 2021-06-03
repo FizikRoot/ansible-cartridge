@@ -3,6 +3,8 @@
   hosts: cluster
   vars:
     cartridge_app_name: 'myapp'
+    # cartridge_scenario:
+    #   - edit_topology
   roles:
     - ansible-cartridge
   become: true

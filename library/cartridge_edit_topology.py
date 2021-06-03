@@ -88,6 +88,7 @@ def get_instances_to_configure(module_hostvars, play_hosts):
         if helpers.is_expelled(instance_vars):
             instance['expelled'] = True
         else:
+            instance['disabled'] = helpers.is_disabled(instance_vars)
             if 'zone' in instance_vars:
                 instance['zone'] = instance_vars['zone']
             if 'config' in instance_vars:
@@ -382,7 +383,7 @@ def get_server_params(instance_name, instance_params, cluster_instances, allow_m
     if instance_params.get('expelled') is True:
         server_params['expelled'] = True
     else:
-        for param_name in ['zone', 'uri']:
+        for param_name in ['zone', 'uri', 'disabled']:
             add_server_param_if_required(server_params, instance_params, cluster_instance, param_name)
 
     if len(server_params) == 1:
@@ -422,6 +423,8 @@ def get_topology_params(replicasets, cluster_replicasets, instances, cluster_ins
     servers_params, err = get_servers_params(instances, cluster_instances, allow_missed_instances)
     if err is not None:
         return None, err
+
+    helpers.debug(servers_params, 'servers_params')
 
     if servers_params:
         topology_params['servers'] = servers_params
@@ -499,6 +502,8 @@ def edit_topology(params):
     replicasets = get_configured_replicasets(module_hostvars, play_hosts)
     instances = get_instances_to_configure(module_hostvars, play_hosts)
 
+    helpers.debug(instances, 'instances')
+
     if not replicasets and not instances:
         return helpers.ModuleRes(changed=False)
 
@@ -509,6 +514,9 @@ def edit_topology(params):
 
     cluster_instances = helpers.get_cluster_instances(control_console)
     cluster_replicasets = helpers.get_cluster_replicasets(control_console)
+
+    helpers.debug(cluster_instances, 'cluster_instances')
+    helpers.debug(cluster_instances, 'cluster_instances')
 
     # Configure replicasets and instances:
     # * Create new replicasets.

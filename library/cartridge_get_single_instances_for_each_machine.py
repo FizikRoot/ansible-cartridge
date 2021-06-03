@@ -27,11 +27,13 @@ def get_one_not_expelled_instance_for_machine(params):
     machine_ids = set()
     instance_names = []
 
-    for instance_name in sorted(play_hosts):
-        instance_vars = module_hostvars[instance_name]
+    not_disabled_instances = list(filter(
+        lambda name: helpers.not_disabled(module_hostvars[name]),
+        play_hosts
+    ))
 
-        if helpers.is_expelled(instance_vars):
-            continue
+    for instance_name in sorted(not_disabled_instances):
+        instance_vars = module_hostvars[instance_name]
 
         machine_id = get_machine_id(instance_vars, instance_name)
         if machine_id not in machine_ids:

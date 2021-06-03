@@ -97,6 +97,7 @@ local function format_server(s)
         uri = s.uri,
         alias = s.alias,
         zone = s.zone,
+        disabled = s.disabled,
         replicaset_uuid = replicaset_uuid,
     }
 end
@@ -469,6 +470,14 @@ def is_expelled(host_vars):
     return host_vars.get('expelled') is True
 
 
+def is_disabled(host_vars):
+    return host_vars.get('disabled') is True
+
+
+def not_disabled(host_vars):
+    return not is_expelled(host_vars) and not is_disabled(host_vars)
+
+
 def is_stateboard(host_vars):
     return host_vars.get('stateboard') is True
 
@@ -628,6 +637,8 @@ class Helpers:
     get_control_console_if_started = staticmethod(get_control_console_if_started)
     is_instance_running = staticmethod(is_instance_running)
     is_expelled = staticmethod(is_expelled)
+    is_disabled = staticmethod(is_disabled)
+    not_disabled = staticmethod(not_disabled)
     is_stateboard = staticmethod(is_stateboard)
     get_instance_id = staticmethod(get_instance_id)
     get_instance_console_sock = staticmethod(get_instance_console_sock)

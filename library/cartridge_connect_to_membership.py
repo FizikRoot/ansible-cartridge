@@ -26,13 +26,17 @@ def connect_to_membership(params):
 
     changed = False
 
-    for instance_name, instance_vars in module_hostvars.items():
-        if helpers.is_expelled(instance_vars) or helpers.is_stateboard(instance_vars):
-            continue
+    instances_to_probe = {
+        instance_name: instance_vars
+        for instance_name, instance_vars in module_hostvars.items()
+        if all([
+            not helpers.is_stateboard(instance_vars),
+            helpers.not_disabled(instance_vars),
+            'config' in instance_vars,
+        ])
+    }
 
-        if 'config' not in instance_vars or 'advertise_uri' not in instance_vars['config']:
-            continue
-
+    for instance_name, instance_vars in instances_to_probe.items():
         connected, err = probe_server(control_console, instance_vars['config']['advertise_uri'])
         if err is not None and instance_name in play_hosts:
             return helpers.ModuleRes(failed=True, msg=err)
