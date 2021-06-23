@@ -45,9 +45,11 @@ def main(event_name, repo_owner, review_state, ref):
     tdg_matrix = []
 
     if event_name == 'push' or event_name == 'pull_request' and repo_owner != 'tarantool':
-        ce_matrix.append(get_ce_params())
+        # ce_matrix.append(get_ce_params())
+        ce_matrix.append(get_ce_params(molecule_scenario='backup'))
 
     if event_name == 'workflow_dispatch' or review_state == 'approved' or ref == 'refs/heads/master':
+        ce_matrix.append(get_ce_params(molecule_scenario='backup'))
         ce_matrix.append(get_ce_params(molecule_scenario='check_facts'))
         ce_matrix.append(get_ce_params(molecule_scenario='cluster_cookie'))
         ce_matrix.append(get_ce_params(molecule_scenario='config_upload'))
