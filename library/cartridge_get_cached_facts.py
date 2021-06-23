@@ -88,6 +88,9 @@ FACTS_BY_TARGETS = {
         'cartridge_eval_with_retries',
         'cartridge_eval_retries',
         'cartridge_eval_delay',
+        'cartridge_instances_backups_dir',
+        'cartridge_fetch_backups',
+        'cartridge_fetch_backups_dir',
     ],
     'single_instances_for_each_machine': [
         'expelled',
