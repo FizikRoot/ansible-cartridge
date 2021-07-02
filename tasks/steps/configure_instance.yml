@@ -1,6 +1,8 @@
 ---
 
-- when: not expelled
+- when:
+    - not expelled
+    - not disabled
   tags: cartridge-instances
   block:
     - name: 'BLOCK: Extend systemd unit files'

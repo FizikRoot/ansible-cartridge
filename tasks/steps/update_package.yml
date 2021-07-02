@@ -15,6 +15,7 @@
       when:
         - not cartridge_multiversion
         - not expelled
+        - not disabled
         - restarted is none
         - not needs_restart
       register: needs_restart_res

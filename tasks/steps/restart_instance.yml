@@ -3,6 +3,7 @@
 - tags: cartridge-instances
   when:
     - not expelled
+    - not disabled
     - restarted is none
     - needs_restart is none
   block:

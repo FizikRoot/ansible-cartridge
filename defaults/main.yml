@@ -173,6 +173,7 @@ delivered_package_path: null
 control_instance: null
 temporary_files: []
 needs_restart: null
+cluster_disabled_instances: {}
 alive_not_expelled_instance: null
 
 # Temp facts

@@ -17,6 +17,7 @@
         check_package_updated: true
       when:
         - not expelled
+        - not disabled
         - restarted is none
         - not needs_restart
       register: needs_restart_res

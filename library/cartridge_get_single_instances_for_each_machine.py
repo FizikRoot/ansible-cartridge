@@ -4,6 +4,7 @@ from ansible.module_utils.helpers import Helpers as helpers
 
 argument_spec = {
     'module_hostvars': {'required': True, 'type': 'dict'},
+    'cluster_disabled_instances': {'required': True, 'type': 'list'},
     'play_hosts': {'required': True, 'type': 'list'},
 }
 
@@ -22,18 +23,17 @@ def get_machine_id(instance_vars, instance_name):
 
 def get_one_not_expelled_instance_for_machine(params):
     module_hostvars = params['module_hostvars']
+    cluster_disabled_instances = params['cluster_disabled_instances']
     play_hosts = params['play_hosts']
 
     machine_ids = set()
     instance_names = []
 
-    not_disabled_instances = list(filter(
-        lambda name: helpers.not_disabled(module_hostvars[name]),
-        play_hosts
-    ))
-
-    for instance_name in sorted(not_disabled_instances):
+    for instance_name in sorted(play_hosts):
         instance_vars = module_hostvars[instance_name]
+
+        if not helpers.is_enabled(instance_vars) or instance_name in cluster_disabled_instances:
+            continue
 
         machine_id = get_machine_id(instance_vars, instance_name)
         if machine_id not in machine_ids:

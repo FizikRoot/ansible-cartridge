@@ -91,6 +91,9 @@ FACTS_BY_TARGETS = {
         'cartridge_eval_retries',
         'cartridge_eval_delay',
     ],
+    'count_disabled_instances': [
+        'instance_info',
+    ],
     'single_instances_for_each_machine': [
         'expelled',
         'disabled',

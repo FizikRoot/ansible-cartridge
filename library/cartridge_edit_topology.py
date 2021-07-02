@@ -88,7 +88,8 @@ def get_instances_to_configure(module_hostvars, play_hosts):
         if helpers.is_expelled(instance_vars):
             instance['expelled'] = True
         else:
-            instance['disabled'] = helpers.is_disabled(instance_vars)
+            if 'disabled' in instance_vars:
+                instance['disabled'] = instance_vars['disabled']
             if 'zone' in instance_vars:
                 instance['zone'] = instance_vars['zone']
             if 'config' in instance_vars:
@@ -166,7 +167,11 @@ def check_filtered_instances(instances, filtered_instances, fmt, allow_missed_in
 
 
 def sort_instances_to_join_by_failover_priority(
-        instances_to_join, replicaset, cluster_instances, allow_missed_instances):
+    instances_to_join,
+    replicaset,
+    cluster_instances,
+    allow_missed_instances,
+):
     failover_priority = replicaset.get('failover_priority')
     if not failover_priority:
         return instances_to_join, None
@@ -306,8 +311,12 @@ def get_replicasets_params(replicasets, cluster_replicasets, cluster_instances, 
     return replicasets_params, None
 
 
-def get_replicasets_params_for_changing_failover_priority(replicasets, cluster_replicasets,
-                                                          cluster_instances, allow_missed_instances):
+def get_replicasets_params_for_changing_failover_priority(
+    replicasets,
+    cluster_replicasets,
+    cluster_instances,
+    allow_missed_instances,
+):
     replicasets_params = []
 
     for alias, cluster_replicaset in cluster_replicasets.items():
@@ -348,6 +357,14 @@ def get_replicasets_params_for_changing_failover_priority(replicasets, cluster_r
     return replicasets_params, None
 
 
+def add_server_flag_if_required(server_params, instance_params, cluster_instance, flag_name):
+    if cluster_instance is not None:
+        if instance_params.get(flag_name, False) == cluster_instance.get(flag_name, False):
+            return
+
+    server_params[flag_name] = instance_params.get(flag_name, False)
+
+
 def add_server_param_if_required(server_params, instance_params, cluster_instance, param_name):
     if instance_params.get(param_name) is None:
         return
@@ -383,7 +400,10 @@ def get_server_params(instance_name, instance_params, cluster_instances, allow_m
     if instance_params.get('expelled') is True:
         server_params['expelled'] = True
     else:
-        for param_name in ['zone', 'uri', 'disabled']:
+        for flag_name in ['disabled']:
+            add_server_flag_if_required(server_params, instance_params, cluster_instance, flag_name)
+
+        for param_name in ['zone', 'uri']:
             add_server_param_if_required(server_params, instance_params, cluster_instance, param_name)
 
     if len(server_params) == 1:
@@ -424,8 +444,6 @@ def get_topology_params(replicasets, cluster_replicasets, instances, cluster_ins
     if err is not None:
         return None, err
 
-    helpers.debug(servers_params, 'servers_params')
-
     if servers_params:
         topology_params['servers'] = servers_params
 
@@ -433,7 +451,11 @@ def get_topology_params(replicasets, cluster_replicasets, instances, cluster_ins
 
 
 def get_replicasets_failover_priority_and_instances_params(
-    replicasets, cluster_replicasets, instances, cluster_instances, allow_missed_instances
+    replicasets,
+    cluster_replicasets,
+    instances,
+    cluster_instances,
+    allow_missed_instances,
 ):
     topology_params = {}
 
@@ -476,7 +498,10 @@ def wait_for_cluster_is_healthy(control_console, timeout):
 
 
 def update_cluster_instances_and_replicasets(
-    edit_topology_res, instances, cluster_instances, cluster_replicasets
+    edit_topology_res,
+    instances,
+    cluster_instances,
+    cluster_replicasets,
 ):
     # instances
     for alias, res_instance in edit_topology_res['servers'].items():
@@ -502,8 +527,6 @@ def edit_topology(params):
     replicasets = get_configured_replicasets(module_hostvars, play_hosts)
     instances = get_instances_to_configure(module_hostvars, play_hosts)
 
-    helpers.debug(instances, 'instances')
-
     if not replicasets and not instances:
         return helpers.ModuleRes(changed=False)
 
@@ -514,9 +537,6 @@ def edit_topology(params):
 
     cluster_instances = helpers.get_cluster_instances(control_console)
     cluster_replicasets = helpers.get_cluster_replicasets(control_console)
-
-    helpers.debug(cluster_instances, 'cluster_instances')
-    helpers.debug(cluster_instances, 'cluster_instances')
 
     # Configure replicasets and instances:
     # * Create new replicasets.

@@ -13,5 +13,7 @@
       else instance_start_retries
     }}'
   delay: '{{ instance_start_delay }}'
-  when: not expelled
+  when:
+    - not expelled
+    - not disabled
   tags: cartridge-instances

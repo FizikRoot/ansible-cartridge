@@ -5,6 +5,7 @@ from ansible.module_utils.helpers import Helpers as helpers
 argument_spec = {
     'console_sock': {'required': True, 'type': 'str'},
     'module_hostvars': {'required': True, 'type': 'dict'},
+    'cluster_disabled_instances': {'required': True, 'type': 'list'},
     'play_hosts': {'required': True, 'type': 'list'},
 }
 
@@ -22,21 +23,20 @@ def probe_server(control_console, uri):
 def connect_to_membership(params):
     control_console = helpers.get_control_console(params['console_sock'])
     module_hostvars = params['module_hostvars']
+    cluster_disabled_instances = params['cluster_disabled_instances']
     play_hosts = params['play_hosts']
 
     changed = False
 
-    instances_to_probe = {
-        instance_name: instance_vars
-        for instance_name, instance_vars in module_hostvars.items()
-        if all([
-            not helpers.is_stateboard(instance_vars),
-            helpers.not_disabled(instance_vars),
-            'config' in instance_vars,
-        ])
-    }
+    for instance_name, instance_vars in module_hostvars.items():
+        if any([
+            helpers.is_stateboard(instance_vars),
+            not helpers.is_enabled(instance_vars),
+            instance_name in cluster_disabled_instances,
+            'advertise_uri' not in instance_vars.get('config', {}),
+        ]):
+            continue
 
-    for instance_name, instance_vars in instances_to_probe.items():
         connected, err = probe_server(control_console, instance_vars['config']['advertise_uri'])
         if err is not None and instance_name in play_hosts:
             return helpers.ModuleRes(failed=True, msg=err)
